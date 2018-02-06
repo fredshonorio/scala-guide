@@ -95,7 +95,10 @@ mean that every function that takes a `User` must be valid when the `Address` is
 set. We can create a `PartialUser` that has no address, to represent this incomplete state,
 and define useful functions that don't require the address. This also effectively
 solves every case where the developer forgets to set a value, because it is impossible
-to create a value without every argument that it requires.
+to create a value without every argument that it requires. More generally, where
+we might find it easy to use the same type to describe concepts that are semantically
+distinct, we are encouraged to make that distinction apparent, in part because
+of immutability.
 
 Since immutable data can be shared freely, it can be uses in parallel
 computation without having to worry about locks or race conditions.
