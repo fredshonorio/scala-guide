@@ -66,7 +66,7 @@ def avg2(a: Double, b:Double) : Double = {
 def avg2(a: Double, b:Double) : Double = (a + b) / 2
 ```
 Notice that `return` is optional, the value of the last expression is the
-result of the method. Additionally, the last does not need brackets.
+result of the method. Additionally, the last example does not need brackets.
 
 Like in Java, Scala methods have access to the objects scope.
 
