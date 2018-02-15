@@ -164,6 +164,9 @@ defaultParam(1, "a")
 ### Named arguments
 TODO
 
+### Currying, argument lists
+TODO
+
 ## Operators
 TODO
 
