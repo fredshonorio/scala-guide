@@ -119,7 +119,7 @@ val add3: ((Int, Int, Int) => Int) = _ + _ + _
 ```
 However, this means that the same parameter cannot be used twice, so:
 ``` scala
-val double = (x: Int) = x = x + x
+val double = (x: Int) = x => x + x
 val double = (x: Int) = _ + _
 ```
 the second example won't compile.
