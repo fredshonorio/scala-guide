@@ -1,19 +1,25 @@
-# Typed Functional Programming Principles
+---
+title: Typed Functional Programming Principles
+date: 2018-03-16
+---
+
 ## Referential transparency
 Referential transparency (RT) is the idea that a function produces no observable effects
 other than its return value. This implies that the function always returns the same
 output if given the same input, and that there is no problem (or side-effect) with calling the
 function multiple times. Functions that are RT are also called pure.
 
-Since pure functions do nothing more than produce an output, they can be composed with other functions,
-we only have to ensure that the types align (in our case, the compiler does this check).
+Since pure functions do nothing more than produce an output, they can be
+composed with other functions, we only have to ensure that the types align
+(in our case, the compiler does this check).
 
 Here are some things that are not referentially transparent:
-- Writing to a global variable
-- Taking a value from a shared mutable queue
-- Printing a string to standard out
-- Writing to a log file
-- Reading bytes from a socket
+
+* Writing to a global variable
+* Taking a value from a shared mutable queue
+* Printing a string to standard out
+* Writing to a log file
+* Reading bytes from a socket
 
 There's a distinction to be drawn for these examples. Some have an effect on the outside
 world, and others don't. We call the former IO (input/output). Both of them are
@@ -41,14 +47,14 @@ easier to maintain.
 Hopefully we have made a persuasive case for pure functions. But we still have the nagging
 problem that IO is useful and necessary, and so we start by cleanly separating pure computation
 from side-effects. Let's start with a demonstrative example:
-```scala
+``` scala
 def printGreeting(user: User): Unit = {
   println(s"Hello ${user.name}")
 }
 ```
 There is a pure computation that computes a greeting, mixed with the side-effect of printing it.
 If we separate them:
-```scala
+``` scala
 def greet(user: User): String =
   s"Hello ${user.name}"
 
@@ -117,12 +123,13 @@ m.get("hello"); // Can return null
 ```
 
 If we look at the signatures of these functions, we see that they are omitting some information:
-- In List: ```T get(int index)``` does not describe what happens when the user
+
+* In List: ```T get(int index)``` does not describe what happens when the user
 attempts to read a value at an index that is not defined
-- Also in List: ```int indexOf(E value)``` the user might get `-1`, a value that is a valid
-int, but does not describe a position, potentially causing obscured errors when using
+* Also in List: ```int indexOf(E value)``` - the function might return `-1`, a value that is a valid
+integer, but does not describe a position, potentially causing obscured errors when using
 the index for arithmetic
-- In Map: ```T get(K key)``` the user might receive a `null`, which might be mistakenly
+* In Map: ```T get(K key)``` - the function might return a `null`, which might be mistakenly
 passed to a function that does not handle nulls
 
 In every case, the API is using special cases of values that the user must handle
