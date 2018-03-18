@@ -18,9 +18,7 @@ rsync -a                       \
       _site/ .
 
 git add .
-
 git commit -m 'Publish'
-
 git push origin master
-
 git checkout develop
+make clean

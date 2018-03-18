@@ -4,7 +4,7 @@ scala-guide: site.hs stack.yaml
 site: scala-guide
 	stack exec scala-guide build
 
-clean: scala-guide
+clean:
 	stack exec scala-guide clean
 
 cleanBin:
