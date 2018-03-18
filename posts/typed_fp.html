@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Scala Guide - Typed Functional Programming Principles</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Scala Guide</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Typed Functional Programming Principles</h1>
+
+            <div class="info">
+    Posted on 2018-03-16
+    
+</div>
+
+<h2 id="referential-transparency">Referential transparency</h2>
+<p>Referential transparency (RT) is the idea that a function produces no observable effects other than its return value. This implies that the function always returns the same output if given the same input, and that there is no problem (or side-effect) with calling the function multiple times. Functions that are RT are also called pure.</p>
+<p>Since pure functions do nothing more than produce an output, they can be composed with other functions, we only have to ensure that the types align (in our case, the compiler does this check).</p>
+<p>Here are some things that are not referentially transparent:</p>
+<ul>
+<li>Writing to a global variable</li>
+<li>Taking a value from a shared mutable queue</li>
+<li>Printing a string to standard out</li>
+<li>Writing to a log file</li>
+<li>Reading bytes from a socket</li>
+</ul>
+<p>There’s a distinction to be drawn for these examples. Some have an effect on the outside world, and others don’t. We call the former IO (input/output). Both of them are considered side-effects, as the result of the operation is not available in the return value of the function.</p>
+<p>It seems that we can’t do anything useful with pure functions, a program seems to be pointless if it can’t interact with the real word. In a strict sense this is true, and while there are pure ways of performing input/output (IO), we don’t even need to employ them to have many benefits of functional programming.</p>
+<p>But let’s first try to explore why side-effects are problematic. Writing a test for a pure function is relatively simple, we provide the arguments and test that the output is the one we expect. Since the function is pure, the test gives us complete assurance that the function works for the given input. The behavior cannot differ from one run to another (unless the code is changed). Testing a function with side-effects requires that we capture the effect in some way, and test that it was matches our expectations. To test that we have written a file, we have to read it, to test that we made an HTTP call, we have to setup something to call on the other side, to test that a mutable queue was written to, we have to read it, etc. This appears to be always harder than testing a function without side-effects, where you just look at the return value of the function. This alone makes pure functions easier to maintain.</p>
+<p>Hopefully we have made a persuasive case for pure functions. But we still have the nagging problem that IO is useful and necessary, and so we start by cleanly separating pure computation from side-effects. Let’s start with a demonstrative example:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">def</span> <span class="fu">printGreeting</span>(user: User): Unit = {
+  <span class="fu">println</span>(s<span class="st">&quot;Hello ${user.name}&quot;</span>)
+}</code></pre></div>
+<p>There is a pure computation that computes a greeting, mixed with the side-effect of printing it. If we separate them:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">def</span> <span class="fu">greet</span>(user: User): String =
+  s<span class="st">&quot;Hello ${user.name}&quot;</span>
+
+<span class="kw">def</span> <span class="fu">printGreeting</span>(user: User): Unit = {
+  <span class="kw">val</span> greeting = <span class="fu">greet</span>(user)
+  <span class="fu">println</span>(greeting)
+}</code></pre></div>
+<p>we have a cleaner separation of concerns. It might not be obvious why this is better given such a trivial example, but it is an exercise worth doing with some familiar piece of code. This separation between business logic and side-effects means that the logic can be tested without testing the effect. It can be seen that a function that calls an impure sub-function becomes impure, regardless of whatever else it does. Given than pure functions are easier to test, we have another incentive to separate pure from impure code as much as we can.</p>
+<h2 id="immutability">Immutability</h2>
+<p>Immutability is the idea that values don’t change over the course of the program. If we want RT, it’s useful that when we implement a function we have no risk of mistankenly modifying our inputs. So it’s easy to see how immutability is nice in a global sense: we don’t have to worry about modifying the inputs we are given and we don’t have to worry that the values we use as arguments to functions we call can be modified. This is another advantage of using pure functions, it is less frequent that we have to load a large chunk of the program into our brains to understand a small fragment of code. This property is called local reasoning. From a perspective of maintenance is useful to know that parts of the code won’t interact in less obvious ways, by mutating state along the way. If they do we make this mutation explicit, by declaring the input and the “modified” output.</p>
+<p>One of the common cases where mutability seems necessary is to deal with collections. In most cases we can better express our intent with methods like <code>filter</code>, <code>find</code>, <code>map</code>, <code>head</code> etc, which produce immutable results. This often communicates the intent better at the cost of imposing knowledge of the API to the reader. These operations are so frequent that it’s likely a good trade-off.</p>
+<p>Immutability also forces us to better describe dependencies between data. Since we can’t have partially initialized objects we are forced to separate the descriptions of our domain. For instance, we have a <code>User</code> which has an <code>Address</code> and many other fields. Most data comes from a service, but the address comes from a different service. We might be tempted to create a user instance without initializing the address, but that would mean that every function that takes a <code>User</code> must be valid when the <code>Address</code> is not set. We can create a <code>PartialUser</code> that has no address, to represent this incomplete state, and define useful functions that don’t require the address. This also effectively solves every case where the developer forgets to set a value, because it is impossible to create a value without every argument that it requires. More generally, where we might find it easy to use the same type to describe concepts that are semantically distinct, we are encouraged to make that distinction apparent, in part because of immutability.</p>
+<p>Since immutable data can be shared freely, it can be uses in parallel computation without having to worry about locks or race conditions.</p>
+<h2 id="describing-computation-with-types">Describing computation with types</h2>
+<p>The “typed” part of typed FP denotes an approach that relies on the type-system to describe our problem. We’ll start with example were we don’t rely sufficiently on the type-system, in Java.</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="bu">List</span>&lt;<span class="bu">Character</span>&gt; ints = <span class="co">//...</span>
+ints.<span class="fu">get</span>(<span class="dv">3</span>); <span class="co">// Can throw IndexOutOfBoundsException</span>
+ints.<span class="fu">indexOf</span>(<span class="ch">'A'</span>); <span class="co">// Can return -1</span>
+<span class="bu">Map</span>&lt;<span class="bu">String</span>, <span class="bu">Integer</span>&gt; m = <span class="co">//...</span>
+m.<span class="fu">get</span>(<span class="st">&quot;hello&quot;</span>); <span class="co">// Can return null</span></code></pre></div>
+<p>If we look at the signatures of these functions, we see that they are omitting some information:</p>
+<ul>
+<li>In List: <code>T get(int index)</code> does not describe what happens when the user attempts to read a value at an index that is not defined</li>
+<li>Also in List: <code>int indexOf(E value)</code> - the function might return <code>-1</code>, a value that is a valid integer, but does not describe a position, potentially causing obscured errors when using the index for arithmetic</li>
+<li>In Map: <code>T get(K key)</code> - the function might return a <code>null</code>, which might be mistakenly passed to a function that does not handle nulls</li>
+</ul>
+<p>In every case, the API is using special cases of values that the user must handle but such cases are not explicit in the type, and thus the compiler can’t help us check that we have handled them.</p>
+<p>For these specific cases we can use an <code>Option</code> type, which is essentially a “list” with either 0 or 1 values, where we describe the possible state of having no value. We are then encouraged to deal with both cases.</p>
+<p>There also other cases where an <code>Option</code> is insufficient, for instance when we want an informative error message. Alternatives would be <code>Either</code> or <code>Try</code>.</p>
+<p>The main takeaway is that we should endeavor to be precise about the types in our programs because not doing so forces us to keep those semantics in our head (e.g. <code>foo</code> throws, but <code>bar</code> doesn’t) where the compiler would be perfectly glad to help.</p>
+<p>This helps maintenance because it makes it easier to describe contracts and semantics of our code, which allows us to refactor without fear of breaking functionality. “Breaking” code simply wouldn’t compile.</p>
+<p>Making sure that incorrect programs won’t compile is our goal, likely one that we never reach completely but aim to get closer and closer. We describe several techniques for this in later chapters.</p>
+
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+    </body>
+</html>
