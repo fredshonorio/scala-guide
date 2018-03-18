@@ -1,6 +1,9 @@
-# Introduction
+---
+title: Introduction
+date: 2018-03-15
+---
 
-This document is a short? guide in building backend services in Scala, using
+This document is a short guide in building backend services in Scala, using
 functional programming (FP), although a lot of ideas are applicable for other languages and different domains.
 It is the result of working for some years in a Java codebase, with a functional
 mindset. As such, a lot of parallels will be drawn between Java and Scala.
