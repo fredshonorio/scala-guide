@@ -25,7 +25,7 @@ rsync -a                       \
       _site/ .
 
 git add .
-git commit -m 'Publish develop/$LAST'
+git commit -m "Publish develop/$LAST"
 git push origin master
 git checkout develop
 make clean

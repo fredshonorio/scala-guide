@@ -1,4 +1,8 @@
-# Modeling
+---
+title: Modeling
+date: 2018-03-19
+---
+
 
 While developing applications we will want to model entities and behaviors
 from our domain.
@@ -18,7 +22,7 @@ case class User(name: String, age: Int)
 ```
 Case classes are immutable by default, have valid implementations of
 `toString`, `equals` and `hashCode`, and have a `copy` method to
-"modify" (make an updated copy) values.
+"modify" values (make an updated copy).
 Scala has [named arguments](https://docs.scala-lang.org/tour/named-arguments.html) and
 [default parameter values](https://docs.scala-lang.org/tour/default-parameter-values.html)
 which means we can use `copy` like this:
