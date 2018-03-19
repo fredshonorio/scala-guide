@@ -57,7 +57,7 @@ The unifying perspective is that `flatMap` let's us work withing a context (e.g.
 by chaining computations that depend on each other.
 
 If we look back at the last example we might find it a bit clumsy, and we're only working with values,
-imagine trying to add 5 of those inputs! Fortunately there Scala provides better
+imagine trying to add 5 of those inputs! Fortunately Scala provides better
 syntax for working with monads, that example can be written as:
 
 ```scala
