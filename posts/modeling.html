@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Scala Guide - Modeling</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Scala Guide</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Modeling</h1>
+
+            <div class="info">
+    Posted on 2018-03-19
+    
+</div>
+
+<p>While developing applications we will want to model entities and behaviors from our domain. In Java we do this with classes, which Scala supports, using this <a href="https://docs.scala-lang.org/tour/classes.html">syntax</a>. Concepts like private members, inheritance/overloading can be expressed but they not be as useful as they are in Java. Scala classes are also similar to Java because <code>toString</code>, <code>equals</code> and <code>hashCode</code> don’t have useful implementations by default, and this must be overloaded if they are required.</p>
+<h2 id="case-classes">Case classes</h2>
+<p>Case classes are an alternative that improves over regular classes. This is an example of a declaration:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">case</span> <span class="kw">class</span> <span class="fu">User</span>(name: String, age: Int)</code></pre></div>
+<p>Case classes are immutable by default, have valid implementations of <code>toString</code>, <code>equals</code> and <code>hashCode</code>, and have a <code>copy</code> method to “modify” values (make an updated copy). Scala has <a href="https://docs.scala-lang.org/tour/named-arguments.html">named arguments</a> and <a href="https://docs.scala-lang.org/tour/default-parameter-values.html">default parameter values</a> which means we can use <code>copy</code> like this:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">val</span> olderJohn = john.<span class="fu">copy</span>(age = <span class="dv">19</span>)</code></pre></div>
+<h2 id="sealed-traits">Sealed traits</h2>
+<p>Case classes allow us to define a type where a value is composed of values of many types (User is composed of a string and an int) but we can also declare a type whose values are one of many types. For example, if we need to contact a user, we might use an email address or a phone number. We’d express this type like so:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">sealed</span> <span class="kw">trait</span> Contact
+<span class="kw">case</span> <span class="kw">class</span> <span class="fu">Phone</span>(country: Country, number: Long) <span class="kw">extends</span> Contact
+<span class="kw">case</span> <span class="kw">class</span> <span class="fu">Email</span>(address: String) <span class="kw">extends</span> Contact</code></pre></div>
+<p>A <code>trait</code> is equivalent to a Java <code>interface</code>, in fact this can be translated to</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">interface</span> Contact {
+    <span class="dt">static</span> <span class="kw">class</span> Phone <span class="kw">extends</span> Contact {...}
+    <span class="dt">static</span> <span class="kw">class</span> Email <span class="kw">extends</span> Contact {...}
+}</code></pre></div>
+<p>where <code>Phone</code> is simply a subtype of <code>Contact</code>. There is a big difference in the Scala version, the <code>sealed</code> modifier indicates that there can be no other subclasses of <code>Contact</code> (the hierarchy is closed). This is useful because we can’t do much with a <code>Contact</code>, at some point we have to know which variant it is, well do it like this:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">val</span> contact : Contact = <span class="fu">Email</span>(<span class="st">&quot;hello@hel.lo&quot;</span>)
+
+<span class="kw">val</span> instruction = contact <span class="kw">match</span> {
+    <span class="kw">case</span> <span class="fu">Phone</span>(_, number) =&gt; s<span class="st">&quot;call $number&quot;</span>
+    <span class="kw">case</span> <span class="fu">Email</span>(email) =&gt; s<span class="st">&quot;send an email to $email&quot;</span>
+}</code></pre></div>
+<p>In this example we “forget” that <code>contact</code> is an <code>Email</code>, for demonstration. Since we only know it is an abstract <code>Contact</code> we use <code>match</code> to declare what to do for each case. For <code>Phone(_, number)</code> we ignore the country (<code>_</code> most times means that we know a value should be there, but we don’t bind a variable to it), and bind the phone number to a variable named <code>number</code>. On the right side we can use the values we bind. We can be more specific in our matches:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">val</span> instruction = contact <span class="kw">match</span> {
+    <span class="kw">case</span> <span class="fu">Phone</span>(<span class="fu">USA</span>(), number) =&gt; s<span class="st">&quot;call $number locally&quot;</span>
+    <span class="kw">case</span> <span class="fu">Phone</span>(_, number) =&gt; s<span class="st">&quot;call $number&quot;</span>
+    <span class="kw">case</span> <span class="fu">Email</span>(email) =&gt; s<span class="st">&quot;send an email to $email&quot;</span>
+}</code></pre></div>
+<p>This mechanism is called pattern matching, more on the syntax <a href="https://docs.scala-lang.org/tour/pattern-matching.html">here</a>.</p>
+<p>An important part of sealed hierarchies is that failing to match all variants will cause a compile-time error, if the compiler is properly configured. From a maintenance perspective, this means we are free to add (and remove!) variants to our types and we can be sure that the compiler will warn us of every time we forget to handle a case. This is why this idea is so powerful, if we model our domain (exhaustively we get a lot of guarantees. Without exhaustive pattern matching the developer is forced to remember where the different branches occur in the code, risking incorrect behavior or runtime errors.</p>
+<h2 id="adts">ADTs</h2>
+<p>Algebraic data types (ADT) are the language-agnostic name for this pattern we’ve seen with sealed traits. We have product types: a <code>User</code> is a name <em>AND</em> an age, and sum types: a <code>Contact</code> is a phone number <em>OR</em> an email address. ADTs let us mix and match products and sums to describe the domain. Sealed traits and case classes are a way to encode ADTs in Scala.</p>
+<p>Although our examples used a very high-level domain, it turns out that ADTs are useful everywhere. In other others, everything is the domain. For instance, if we need to do HTTP requests and handle timeouts in a particular way, we can use this generic type:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">sealed</span> <span class="kw">trait</span> HttpResult[A]
+<span class="kw">case</span> <span class="kw">class</span> Success[A](value: A)    <span class="kw">extends</span> HttpResult[A]
+<span class="kw">case</span> <span class="kw">class</span> Timeout[A]()            <span class="kw">extends</span> HttpResult[A]
+<span class="kw">case</span> <span class="kw">class</span> HttpError[A](code: Int) <span class="kw">extends</span> HttpResult[A]</code></pre></div>
+<p>which represents the timeout as one of the variants.</p>
+<p>Given that ADTs give us a very precise encoding for domain entities we should aim to use them as much as possible inside our program, and keep looser representations at the edges. An example of looser representations is using json values directly instead of converting them to a case class (or similar) or using an string to describe an url. In both cases we have a general type that can be mapped to a concrete one, but there is a space of values where the mapping is invalid. By using these loose types at the edges we get a form of validation. Additionally we get a clean separation between the “transport” and the data. In the case of json, we can change libraries or even change format completely, and our core logic would be the same.</p>
+<p>A good example of designing with ADTs can be seen in <a href="https://www.youtube.com/watch?v=IcgmSRJHu_8">this video</a> (the first 8 minutes should suffice), other articles <a href="https://fsharpforfunandprofit.com/posts/designing-with-types-making-illegal-states-unrepresentable/">here</a> and <a href="http://blog.jenkster.com/2016/06/functional-mumbo-jumbo-adts.html">here</a>.</p>
+<h2 id="aliases">Aliases</h2>
+<p>TODO</p>
+<h2 id="newtypes">Newtypes</h2>
+<p>TODO https://github.com/estatico/scala-newtype https://github.com/milessabin/shapeless/blob/master/examples/src/main/scala/shapeless/examples/newtype.scala http://eed3si9n.com/learning-scalaz-day3</p>
+<h2 id="refinement-types">Refinement types</h2>
+<p>TODO https://github.com/fthomas/refined</p>
+<h2 id="checked-string-literals">Checked string literals</h2>
+<p>TODO https://github.com/propensive/contextual</p>
+
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+    </body>
+</html>
