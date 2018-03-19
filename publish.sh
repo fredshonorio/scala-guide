@@ -1,6 +1,13 @@
 #!/bin/bash
 set -eo pipefail
 
+if [[ -n $(git status --porcelain) ]]; then
+    echo Please ensure the working tree is clean
+    exit 1
+fi
+
+LAST=$(git rev-parse --short HEAD)
+
 git push origin develop
 
 make clean
@@ -18,7 +25,7 @@ rsync -a                       \
       _site/ .
 
 git add .
-git commit -m 'Publish'
+git commit -m 'Publish develop/$LAST'
 git push origin master
 git checkout develop
 make clean
