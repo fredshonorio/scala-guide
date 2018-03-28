@@ -1,4 +1,7 @@
-# Syntax
+---
+title: Syntax
+date: 2018-03-28
+---
 
 ## Classes and Singleton Objects
 
@@ -8,7 +11,7 @@ A class can be declared as:
 
 ``` scala
 class Hello(a: Int, b: Boolean) {
-    def doThings() : Double = ???
+    def doThings(): Double = ???
 }
 ```
 which is a class with two members: `a` and `b` and a method `doThings` which returns
@@ -24,7 +27,7 @@ we could write:
 val value1 : Hello = new Hello(1, false)
 ```
 But this is often not necessary. The annotation of the return type for methods,
-e.g. `Double` in `def doThings() : Double = ???` is also optional (the compiler
+e.g. `Double` in `def doThings(): Double` is also optional (the compiler
 will try to infer it) but should always be explicitly declared. This is because it becomes
 easy to change the effective type of a method by mistake, and cause seemingly
 unrelated compiler errors.
@@ -66,7 +69,7 @@ def avg2(a: Double, b:Double) : Double = {
 def avg2(a: Double, b:Double) : Double = (a + b) / 2
 ```
 Notice that `return` is optional, the value of the last expression is the
-result of the method. Additionally, the last example does not need brackets.
+result of the method. Additionally, the last example does not even need brackets.
 
 Like in Java, Scala methods have access to the objects scope.
 
@@ -75,10 +78,11 @@ Using methods is very similar to Java, although the `.` can be omitted:
 obj.method()
 obj method()
 ```
-This second form of syntax should probably not be used, for consistency.
+This second form of syntax should not be used in general, for consistency.
 
 It is possible to define methods inside other methods, this often helps
-clarity and cleans up the namespace. The canonical factorial function
+clarity and cleans up the namespace because utility functions that are only used once
+are not visible outside the function.. The canonical factorial function
 can be written like this:
 
 ``` scala
@@ -87,6 +91,7 @@ def factorial(x: Int): Int = {
         if (x <= 1) accumulator
         else fact(x - 1, x * accumulator)
     }
+
     fact(x, 1)
 }
 ```
@@ -100,11 +105,11 @@ val increment: (Int => Int) =             _ + 1
 ```
 These are all the same function, we just needed to give some hints
 to the compiler so that it could infer the correct type. Doing this might
-be necessary if we're just declaring the `increment` value, but using it
-anonymously won't usually require it:
+be necessary if we're declaring the `increment` function on it's own, but using
+it anonymously won't usually require it:
 
 ``` scala
-val someList : List[Int] = ???
+val someList: List[Int] = ???
 
 someList.map(_ + 1) == someList.map(x => x + 1)
 ```
@@ -117,10 +122,10 @@ is equivalent to:
 ``` scala
 val add3: ((Int, Int, Int) => Int) = _ + _ + _
 ```
-However, this means that the same parameter cannot be used twice, so:
+However, this means that the same parameter can only be used once, in this case:
 ``` scala
-val double = (x: Int) = x => x + x
-val double = (x: Int) = _ + _
+val double: (Int => Int) = x => x + x
+val double: (Int => Int) = _ + _
 ```
 the second example won't compile.
 
@@ -142,9 +147,9 @@ add3F.apply(1, 2, 3) == add3F(1, 2, 3)
 ```
 
 This can be useful for some APIs besides `Function`, for instance,
-Scala does not have array indexing syntax like Java (e.g.: `arr[3]`),
-but the `List` type uses `apply` for this, so we can write `list(3)`
-to access a position.
+Scala does not have array indexing syntax like Java (e.g.: the square brackets in `arr[3]`),
+but the `List` type uses `apply` for this, so we can write `myList(3)`
+to access a position. We can also use this syntax sugar in our own code.
 
 ### Companion object
 TODO
