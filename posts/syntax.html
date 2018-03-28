@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Scala Guide - Syntax</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+        <link rel="stylesheet" type="text/css" href="../css/syntax.css" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Scala Guide</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Syntax</h1>
+
+            <div class="info">
+    Posted on 2018-03-28
+</div>
+
+<h2 id="classes-and-singleton-objects">Classes and Singleton Objects</h2>
+<p>As a language with an object-oriented language foundation, Scala has classes, which are instantiated by objects. A class can be declared as:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">class</span> <span class="fu">Hello</span>(a: Int, b: Boolean) {
+    <span class="kw">def</span> <span class="fu">doThings</span>(): Double = ???
+}</code></pre></div>
+<p>which is a class with two members: <code>a</code> and <code>b</code> and a method <code>doThings</code> which returns a <code>Double</code>. To create a value (object) of this class (type) we simply call:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">val</span> value = <span class="kw">new</span> <span class="fu">Hello</span>(<span class="dv">1</span>, <span class="kw">false</span>)</code></pre></div>
+<p>In contrast with Java, the type of <code>value</code> is inferred. If we want to make it explicit we could write:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">val</span> value1 : Hello = <span class="kw">new</span> <span class="fu">Hello</span>(<span class="dv">1</span>, <span class="kw">false</span>)</code></pre></div>
+<p>But this is often not necessary. The annotation of the return type for methods, e.g. <code>Double</code> in <code>def doThings(): Double</code> is also optional (the compiler will try to infer it) but should always be explicitly declared. This is because it becomes easy to change the effective type of a method by mistake, and cause seemingly unrelated compiler errors.</p>
+<p>We can also see that Scala expressions and statements don’t need to be terminated with a semicolon.</p>
+<p>There are no static methods in Scala, to declare methods that don’t depend on the state of a class instance we can use singleton objects:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">object</span> Singleton {
+    <span class="kw">val</span> someConstant: String = <span class="st">&quot;HELLO&quot;</span>
+    <span class="kw">def</span> <span class="fu">hello</span>(): String = someConstant
+}</code></pre></div>
+<p>Like the name implies, there only exists one instance of a singleton object. They can be used like this:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala">Singleton.<span class="fu">someConstant</span>
+Singleton.<span class="fu">hello</span>()</code></pre></div>
+<h2 id="methods">Methods</h2>
+<p>Scala favors expressions over statements, so we get a cleaner syntax when the method is a single expression. All these definitions are equivalent:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">def</span> <span class="fu">avg2</span>(a: Double, b:Double) : Double = {
+  <span class="kw">val</span> sum = a + b
+  <span class="kw">return</span> sum / <span class="dv">2</span>
+}
+
+<span class="kw">def</span> <span class="fu">avg2</span>(a: Double, b:Double) : Double = {
+  <span class="kw">val</span> sum = a + b
+  sum / <span class="dv">2</span>
+}
+
+<span class="kw">def</span> <span class="fu">avg2</span>(a: Double, b:Double) : Double = (a + b) / <span class="dv">2</span></code></pre></div>
+<p>Notice that <code>return</code> is optional, the value of the last expression is the result of the method. Additionally, the last example does not even need brackets.</p>
+<p>Like in Java, Scala methods have access to the objects scope.</p>
+<p>Using methods is very similar to Java, although the <code>.</code> can be omitted:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala">obj.<span class="fu">method</span>()
+obj <span class="fu">method</span>()</code></pre></div>
+<p>This second form of syntax should not be used in general, for consistency.</p>
+<p>It is possible to define methods inside other methods, this often helps clarity and cleans up the namespace because utility functions that are only used once are not visible outside the function.. The canonical factorial function can be written like this:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">def</span> <span class="fu">factorial</span>(x: Int): Int = {
+    <span class="kw">def</span> <span class="fu">fact</span>(x: Int, accumulator: Int): Int = {
+        <span class="kw">if</span> (x &lt;= <span class="dv">1</span>) accumulator
+        <span class="kw">else</span> <span class="fu">fact</span>(x - <span class="dv">1</span>, x * accumulator)
+    }
+
+    <span class="fu">fact</span>(x, <span class="dv">1</span>)
+}</code></pre></div>
+<h3 id="anonymous-functions-lambdas">Anonymous functions (lambdas)</h3>
+<p>As with Java, Scala allows defining functions that can be passed as values:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">val</span> increment               = (x: Int) =&gt; x + <span class="dv">1</span>
+<span class="kw">val</span> increment: (Int =&gt; Int) = x        =&gt; x + <span class="dv">1</span>
+<span class="kw">val</span> increment: (Int =&gt; Int) =             _ + <span class="dv">1</span></code></pre></div>
+<p>These are all the same function, we just needed to give some hints to the compiler so that it could infer the correct type. Doing this might be necessary if we’re declaring the <code>increment</code> function on it’s own, but using it anonymously won’t usually require it:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">val</span> someList: List[Int] = ???
+
+someList.<span class="fu">map</span>(_ + <span class="dv">1</span>) == someList.<span class="fu">map</span>(x =&gt; x + <span class="dv">1</span>)</code></pre></div>
+<p>Notice that the underscore syntax for anonymous functions uses the arguments positionally, so the method:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">def</span> <span class="fu">add3</span>(a: Int, b:Int, c:Int) : Int = a + b + c</code></pre></div>
+<p>is equivalent to:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">val</span> add3: ((Int, Int, Int) =&gt; Int) = _ + _ + _</code></pre></div>
+<p>However, this means that the same parameter can only be used once, in this case:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">val</span> <span class="dt">double</span>: (Int =&gt; Int) = x =&gt; x + x
+<span class="kw">val</span> <span class="dt">double</span>: (Int =&gt; Int) = _ + _</code></pre></div>
+<p>the second example won’t compile.</p>
+<h3 id="apply"><code>apply</code></h3>
+<p>In our <code>add3</code> we defined a function as a value, how do we use it? Precisely the same way use the method:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">def</span> <span class="fu">add3M</span>(a: Int, b:Int, c:Int) : Int = a + b + c
+<span class="kw">val</span> add3F: ((Int, Int, Int) =&gt; Int) = _ + _ + _
+
+<span class="fu">add3F</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>) == <span class="fu">add3M</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)</code></pre></div>
+<p>This is because <code>add3F</code> is actually a value of type <code>Function3</code>, which has an <code>apply</code> method. The compiler provides some syntactic sugar so that we don’t need to write <code>apply</code> and so:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala">add3F.<span class="fu">apply</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>) == <span class="fu">add3F</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)</code></pre></div>
+<p>This can be useful for some APIs besides <code>Function</code>, for instance, Scala does not have array indexing syntax like Java (e.g.: the square brackets in <code>arr[3]</code>), but the <code>List</code> type uses <code>apply</code> for this, so we can write <code>myList(3)</code> to access a position. We can also use this syntax sugar in our own code.</p>
+<h3 id="companion-object">Companion object</h3>
+<p>TODO</p>
+<h3 id="default-parameters">Default parameters</h3>
+<p>Methods can have default parameters (function values can’t):</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="kw">def</span> <span class="fu">defaultParam</span>(mandatoryInt: Int, defaultStr: String = <span class="st">&quot;hello&quot;</span>): Double = ???</code></pre></div>
+<p>Which means we can omit parameters at the call site:</p>
+<div class="sourceCode"><pre class="sourceCode scala"><code class="sourceCode scala"><span class="fu">defaultParam</span>(<span class="dv">1</span>)
+<span class="fu">defaultParam</span>(<span class="dv">1</span>, <span class="st">&quot;a&quot;</span>)</code></pre></div>
+<h3 id="named-arguments">Named arguments</h3>
+<p>TODO</p>
+<h3 id="currying-argument-lists">Currying, argument lists</h3>
+<p>TODO</p>
+<h2 id="operators">Operators</h2>
+<p>TODO</p>
+<h2 id="packages-imports">Packages, imports</h2>
+<p>TODO</p>
+
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+    </body>
+</html>
